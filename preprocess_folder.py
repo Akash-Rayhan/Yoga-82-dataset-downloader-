@@ -1,6 +1,7 @@
 import os
 import shutil
 from multiprocessing import Pool
+from PIL import Image
 
 # define paths
 main_data_directory = '/media/akash/D591-2BFD/Datasets/Yoga-82/yoga_dataset_links'
@@ -26,15 +27,22 @@ def process_folder(class_folder):
         # loop through images
     image_list = os.listdir(os.path.join(main_data_directory, class_folder))
     for i, image_file in enumerate(image_list):
+        try:
+            img = Image.open(os.path.join(main_data_directory, class_folder, image_file))
+            img.verify()
+        except (IOError, SyntaxError) as e:
+            print(f"{os.path.join(main_data_directory, class_folder, image_file)} is not a valid image file and cannot be loaded.")
+            continue # Skip copying the file if it's not a valid image file
             # rename image file
+        new_file_name = class_folder+'_image_'+str(i+1)+'.jpg'
+        
         if i < int(len(image_list)*0.7):
-            new_file_name = class_folder+'_image_'+str(i+1)+'.jpg'
             shutil.copy(os.path.join(main_data_directory, class_folder, image_file), os.path.join(train_class_folder, new_file_name))
+            
         elif i < int(len(image_list)*0.9):
-            new_file_name = class_folder+'_image_'+str(i+1)+'.jpg'
             shutil.copy(os.path.join(main_data_directory, class_folder, image_file), os.path.join(valid_class_folder, new_file_name))
+            
         else:
-            new_file_name = class_folder+'_image_'+str(i+1)+'.jpg'
             shutil.copy(os.path.join(main_data_directory, class_folder, image_file), os.path.join(test_class_folder, new_file_name))
 
 # process each class folder in parallel
